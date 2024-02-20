@@ -1,10 +1,14 @@
 package main
 
 import (
+	"errors"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/russross/blackfriday/v2"
 	"github.com/urfave/cli/v2"
@@ -15,6 +19,11 @@ type outputFormat struct {
 	outputFolder string
 	title        string
 	posts        int
+}
+
+type fileInfoWithDate struct {
+	fs.DirEntry
+	Date string
 }
 
 func addTextToFile(container, filePath string) error {
@@ -194,12 +203,64 @@ func checkOutput(directory string) (bool, error) {
 	return len(files) == 0, nil
 }
 
+func extractDateFromMarkdown(markdownBytes []byte) (string, error) {
+	//iterate through each line
+	lines := strings.Split(string(markdownBytes), "\n")
+	for _, line := range lines {
+		if strings.Contains(line, "*Published on ") {
+
+			// Extract the date after "Published on"
+			parts := strings.Split(line, " ")
+			return strings.Split(parts[2], ".")[0], nil
+			// if len(parts) >= 4 {
+			// 	return parts[len(parts)-1], nil
+			// }
+		}
+	}
+	errMsg := "Unable to extract date from Markdown: no line containing 'Published on' found"
+	log.Println(errMsg)
+	return "", errors.New(errMsg)
+}
+
+func getMarkdownFilesWithDates(inputFolder string) ([]fileInfoWithDate, error) {
+	var filesWithDates []fileInfoWithDate
+
+	files, err := os.ReadDir(inputFolder)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, file := range files {
+		if filepath.Ext(file.Name()) == ".md" {
+			markdownBytes, err := os.ReadFile(filepath.Join(inputFolder, file.Name()))
+			if err != nil {
+				return nil, err
+			}
+
+			date, err := extractDateFromMarkdown(markdownBytes)
+			if err != nil {
+				log.Printf("Error extracting date from %s: %v", file.Name(), err)
+				continue
+			}
+
+			filesWithDates = append(filesWithDates, fileInfoWithDate{file, date})
+		}
+	}
+
+	return filesWithDates, nil
+}
+
 func generate(format outputFormat) error {
 	// Read all markdown files from input folder
-	files, err := os.ReadDir(format.inputFolder)
+	// files, err := os.ReadDir(format.inputFolder)
+	files, err := getMarkdownFilesWithDates(format.inputFolder)
 	if err != nil {
 		return err
 	}
+
+	sort.Slice(files, func(i, j int) bool {
+		return files[i].Date < files[j].Date
+	})
 
 	// check if the output folder is empty
 	isEmpty, err := checkOutput(format.outputFolder)
