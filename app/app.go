@@ -247,7 +247,7 @@ func generate(format outputFormat) error {
 
 		}
 	}
-	//if we have left over posts or we want every post in one HTML File
+	//if we want every post in one HTML File
 	if format.posts == 0 {
 		err = output(htmlDocument, format, page)
 		if err != nil {
