@@ -15,6 +15,83 @@ type outputFormat struct {
 	title        string
 }
 
+func cssString() string {
+	return `<style>
+	.pagination {
+		text-align: center;
+	}
+
+	.pagination a {
+		color: black;
+		text-decoration: none;
+		padding: 8px 15px;
+		display: inline-block;
+	}
+
+	.pagination a.active {
+		background-color: hsl(120, 100%, 70%);
+		font-weight: bold;
+		border-radius: 5px;
+	}
+
+	.pagination a:hover:not(.active) {
+		background-color: hsl(0, 0%, 77%);
+		border-radius: 5px;
+	}
+
+	html * {
+		font-family: Arial, sans-serif;
+	}
+
+	hr {
+		border: solid 1px #ccc;
+		margin-bottom: 50px;
+		margin-top: 50px;
+	}
+
+	body {
+		width: 750px;
+		margin-left: auto;
+		margin-right: auto;
+	}
+
+	h1 {
+		text-align: right;
+		color: #6d4aff;
+		margin-bottom: 50px;
+	}
+
+	h2 {
+		text-align: center;
+		color: #372580;
+		margin-bottom: 50px;
+	}
+
+	p {
+		text-align: justify;
+	}
+	</style>
+`
+}
+
+func style(html []byte, title string) []byte {
+	boilerPlate := "<!DOCTYPE html><html lang=\"en\"> <head><meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\"> <meta charset=\"utf-8\">"
+
+	blogTitle := []byte("<title>" + title + "</title>")
+
+	styleTag := cssString()
+
+	blogHeading := []byte("<h1>" + title + "</h1>")
+
+	// add the tags to the document
+	html = append([]byte(blogHeading), []byte(html)...)
+	html = append([]byte(styleTag), []byte(html)...)
+	html = append(blogTitle, []byte(html)...)
+	html = append([]byte(boilerPlate), []byte(html)...)
+
+	return html
+}
+
 func generate(format outputFormat) error {
 	// Read all markdown files from input folder
 	files, err := os.ReadDir(format.inputFolder)
@@ -43,9 +120,8 @@ func generate(format outputFormat) error {
 		}
 	}
 
-	// add blog title
-	blogTitle := []byte("<h1>" + format.title + "</h1>")
-	htmlDocument = append(blogTitle, []byte(htmlDocument)...)
+	// add style
+	htmlDocument = style(htmlDocument, format.title)
 
 	// Write HTML to output file
 	outputFilePath := filepath.Join(format.outputFolder, "index.html")
