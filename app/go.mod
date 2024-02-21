@@ -1,6 +1,6 @@
-module github.com/StefanVodilovski/static-blog-generator
+module cli
 
-go 1.22.0
+go 1.21.3
 
 require (
 	github.com/russross/blackfriday/v2 v2.1.0
