@@ -24,4 +24,5 @@ To use the CLI for generating HTML files from .MD files run the following comman
 docker run -v <your_input_folder>:/app/input -v <your_output_folder>:/app/output gen-blog generate --input /app/input --output /app/output --title <your_title> --posts-per-page <optional_posts_per_page>
 ```
 
-where <your_input_folder> contains .md files and <your_output_folder> will contain the output HTML files.
+where <your_input_folder> contains .md files and <your_output_folder>, which must be an emtpy folder, will contain the output HTML files.
+
