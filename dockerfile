@@ -1,5 +1,16 @@
-FROM golang:1.22-alpine as dev
+FROM golang:1.21-alpine as build
 
-RUN apk update && apk add git 
+WORKDIR /app
 
-workdir /work
+COPY app/* .
+
+RUN go build -o gen-blog .
+
+FROM alpine as runtime 
+
+COPY --from=build /app/gen-blog usr/local/bin/gen-blog
+
+COPY run.sh /
+
+ENTRYPOINT [ "./run.sh" ]
+
