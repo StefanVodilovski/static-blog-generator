@@ -257,7 +257,7 @@ func generate(format outputFormat) error {
 	if err != nil {
 		return err
 	}
-
+	//sort them
 	sort.Slice(files, func(i, j int) bool {
 		return files[i].Date < files[j].Date
 	})
@@ -308,7 +308,8 @@ func generate(format outputFormat) error {
 
 		}
 	}
-	//if we have left over posts or we want every post in one HTML File
+
+	//if we want every post in one HTML File
 	if format.posts == 0 {
 		err = output(htmlDocument, format, page)
 		if err != nil {
